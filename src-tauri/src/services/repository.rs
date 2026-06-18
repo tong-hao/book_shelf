@@ -354,6 +354,18 @@ pub fn create_tag(name: &str, color: Option<&str>) -> Result<Tag, String> {
     })
 }
 
+/// 更新标签颜色
+pub fn update_tag_color(tag_id: i64, color: Option<&str>) -> Result<(), String> {
+    db::with_db(|conn| {
+        conn.execute(
+            "UPDATE tags SET color = ?1 WHERE id = ?2",
+            params![color, tag_id],
+        )
+        .map_err(|e| format!("Failed to update tag color: {e}"))?;
+        Ok(())
+    })
+}
+
 /// 删除标签
 pub fn delete_tag(tag_id: i64) -> Result<(), String> {
     db::with_db(|conn| {
@@ -398,6 +410,168 @@ pub fn remove_tag_from_book(book_id: i64, tag_id: i64) -> Result<(), String> {
         .map_err(|e| format!("Failed to remove tag: {e}"))?;
         Ok(())
     })
+}
+
+/// CSV 批量导入：每行格式：图书名称,标签1,标签2,...
+/// 图书不存在时自动创建，标签不存在时自动创建
+pub fn import_books_csv(csv_text: &str) -> Result<CsvImportReport, String> {
+    db::with_db(|conn| {
+        let tx = conn
+            .unchecked_transaction()
+            .map_err(|e| format!("Failed to start transaction: {e}"))?;
+
+        let mut report = CsvImportReport {
+            total_rows: 0,
+            books_created: 0,
+            books_found: 0,
+            tags_created: 0,
+            tag_associations: 0,
+            errors: Vec::new(),
+        };
+
+        for (line_num, line) in csv_text.lines().enumerate() {
+            let line = line.trim();
+            if line.is_empty() {
+                continue;
+            }
+
+            report.total_rows += 1;
+
+            // 解析 CSV 行（简单 CSV 解析，支持引号包裹）
+            let fields = parse_csv_line(line);
+            if fields.is_empty() {
+                continue;
+            }
+
+            let book_title = fields[0].trim();
+            if book_title.is_empty() {
+                report.errors.push(format!("第 {} 行：图书名称为空", line_num + 1));
+                continue;
+            }
+
+            let tag_names: Vec<&str> = fields[1..]
+                .iter()
+                .map(|f| f.trim())
+                .filter(|f| !f.is_empty())
+                .collect();
+
+            if tag_names.is_empty() {
+                report.errors.push(format!("第 {} 行：没有指定标签", line_num + 1));
+                continue;
+            }
+
+            // 查找或创建图书
+            let book_id = {
+                let existing = tx
+                    .query_row(
+                        "SELECT id FROM books WHERE title = ?1 LIMIT 1",
+                        params![book_title],
+                        |row| row.get::<_, i64>(0),
+                    )
+                    .ok();
+
+                if let Some(id) = existing {
+                    report.books_found += 1;
+                    id
+                } else {
+                    // 创建新图书（无实际文件）
+                    let unique_path = format!("csv_import_{}", uuid::Uuid::new_v4());
+                    let now = chrono::Utc::now().format("%Y-%m-%d %H:%M:%S").to_string();
+                    tx.execute(
+                        "INSERT INTO books (file_path, title, author, added_at)
+                         VALUES (?1, ?2, ?3, ?4)",
+                        params![unique_path, book_title, "未知", now],
+                    )
+                    .map_err(|e| format!("第 {} 行：创建图书失败: {e}", line_num + 1))?;
+
+                    report.books_created += 1;
+                    tx.last_insert_rowid()
+                }
+            };
+
+            // 处理每个标签
+            for tag_name in &tag_names {
+                let tag_id = {
+                    let existing = tx
+                        .query_row(
+                            "SELECT id FROM tags WHERE name = ?1 LIMIT 1",
+                            params![tag_name],
+                            |row| row.get::<_, i64>(0),
+                        )
+                        .ok();
+
+                    if let Some(id) = existing {
+                        id
+                    } else {
+                        tx.execute(
+                            "INSERT INTO tags (name, color) VALUES (?1, ?2)",
+                            params![tag_name, "#3b82f6"],
+                        )
+                        .map_err(|e| format!("第 {} 行：创建标签「{}」失败: {e}", line_num + 1, tag_name))?;
+
+                        report.tags_created += 1;
+                        tx.last_insert_rowid()
+                    }
+                };
+
+                // 建立关联
+                let affected = tx
+                    .execute(
+                        "INSERT OR IGNORE INTO book_tags (book_id, tag_id) VALUES (?1, ?2)",
+                        params![book_id, tag_id],
+                    )
+                    .map_err(|e| {
+                        format!(
+                            "第 {} 行：关联图书「{}」与标签「{}」失败: {e}",
+                            line_num + 1,
+                            book_title,
+                            tag_name
+                        )
+                    })?;
+
+                report.tag_associations += affected;
+            }
+        }
+
+        tx.commit().map_err(|e| format!("Failed to commit transaction: {e}"))?;
+
+        Ok(report)
+    })
+}
+
+/// 简单的 CSV 行解析器：支持双引号包裹的值和转义引号
+fn parse_csv_line(line: &str) -> Vec<String> {
+    let mut fields = Vec::new();
+    let mut current = String::new();
+    let mut in_quotes = false;
+    let mut chars = line.chars().peekable();
+
+    while let Some(ch) = chars.next() {
+        match ch {
+            '"' if !in_quotes => {
+                in_quotes = true;
+            }
+            '"' if in_quotes => {
+                // 转义引号 ""
+                if chars.peek() == Some(&'"') {
+                    current.push('"');
+                    chars.next();
+                } else {
+                    in_quotes = false;
+                }
+            }
+            ',' if !in_quotes => {
+                fields.push(current.trim().to_string());
+                current = String::new();
+            }
+            _ => {
+                current.push(ch);
+            }
+        }
+    }
+    fields.push(current.trim().to_string());
+
+    fields
 }
 
 /// 检查文件路径是否已存在

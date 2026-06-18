@@ -3,11 +3,13 @@ import { useUiStore } from "../store/uiStore";
 import * as tagsApi from "../api/tags";
 import type { TagWithCount } from "../api/tags";
 
+const DEFAULT_TAG_COLOR = "#3b82f6";
+
 export function TagManager() {
   const { showTagManager, setShowTagManager, bumpTagVersion } = useUiStore();
   const [tags, setTags] = useState<TagWithCount[]>([]);
   const [newTagName, setNewTagName] = useState("");
-  const [newTagColor, setNewTagColor] = useState("#3b82f6");
+  const [newTagColor, setNewTagColor] = useState(DEFAULT_TAG_COLOR);
 
   const loadTags = async () => {
     try {
@@ -115,12 +117,31 @@ export function TagManager() {
                     className="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-gray-50"
                   >
                     <div className="flex items-center gap-2">
-                      {tag.color && (
-                        <span
-                          className="w-3 h-3 rounded-full flex-shrink-0"
-                          style={{ backgroundColor: tag.color }}
+                      <div
+                        className="relative w-4 h-4 rounded-full flex-shrink-0 hover:ring-2 hover:ring-offset-1 hover:ring-gray-300 transition-shadow"
+                        style={{ backgroundColor: tag.color || "#e5e7eb" }}
+                        title="点击修改颜色"
+                      >
+                        <input
+                          type="color"
+                          defaultValue={tag.color || DEFAULT_TAG_COLOR}
+                          onChange={async (e) => {
+                            try {
+                              await tagsApi.updateTagColor(tag.id, e.target.value);
+                              bumpTagVersion();
+                              loadTags();
+                            } catch (err) {
+                              console.error("Failed to update tag color:", err);
+                            }
+                          }}
+                          className="
+                            absolute inset-0
+                            opacity-0 cursor-pointer
+                            border-0 p-0
+                          "
+                          title="点击修改颜色"
                         />
-                      )}
+                      </div>
                       <span className="text-sm text-bookshelf-text">{tag.name}</span>
                       <span className="text-xs text-bookshelf-text-secondary">
                         ({tag.count})

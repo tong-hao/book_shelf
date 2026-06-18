@@ -1,4 +1,4 @@
-import { open } from "@tauri-apps/plugin-shell";
+import { openBookFile } from "../api/books";
 import { convertFileSrc } from "@tauri-apps/api/core";
 import type { BookWithTags } from "../api/types";
 import { useBookStore } from "../store/bookStore";
@@ -17,7 +17,7 @@ export function BookCard({ book }: Props) {
 
   const handleDoubleClick = async () => {
     try {
-      await open(book.file_path);
+      await openBookFile(book.file_path);
     } catch (e) {
       console.error("Failed to open file:", e);
     }

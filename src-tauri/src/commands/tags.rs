@@ -20,6 +20,12 @@ pub fn create_tag(name: String, color: Option<String>) -> Result<Tag, String> {
     repository::create_tag(&name, color.as_deref())
 }
 
+/// 更新标签颜色
+#[command]
+pub fn update_tag_color(tag_id: i64, color: Option<String>) -> Result<(), String> {
+    repository::update_tag_color(tag_id, color.as_deref())
+}
+
 /// 删除标签
 #[command]
 pub fn delete_tag(tag_id: i64) -> Result<(), String> {

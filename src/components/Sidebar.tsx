@@ -9,7 +9,7 @@ export function Sidebar() {
   const [tags, setTags] = useState<TagWithCount[]>([]);
   const { filteredTagIds, setFilteredTagIds, setSearchKeyword, searchKeyword } =
     useBookStore();
-  const { sidebarOpen, toggleSidebar, setShowTagManager, tagVersion } = useUiStore();
+  const { sidebarOpen, toggleSidebar, setShowTagManager, setShowImportPage, tagVersion } = useUiStore();
 
   useEffect(() => {
     tagsApi.listTagsWithCount().then(setTags).catch(console.error);
@@ -33,6 +33,16 @@ export function Sidebar() {
       <div className="p-4 border-b border-bookshelf-border flex items-center justify-between">
         <h2 className="font-semibold text-sm text-bookshelf-text">标签</h2>
         <div className="flex gap-1">
+          <Tooltip content="导入标签">
+            <button
+              onClick={() => setShowImportPage(true)}
+              className="p-1.5 rounded hover:bg-gray-300/50 transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3" />
+              </svg>
+            </button>
+          </Tooltip>
           <Tooltip content="标签管理">
             <button
               onClick={() => setShowTagManager(true)}

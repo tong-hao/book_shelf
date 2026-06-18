@@ -61,6 +61,17 @@ pub struct ScanProgress {
     pub current_file: String,
 }
 
+/// CSV 导入报告
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CsvImportReport {
+    pub total_rows: usize,
+    pub books_created: usize,
+    pub books_found: usize,
+    pub tags_created: usize,
+    pub tag_associations: usize,
+    pub errors: Vec<String>,
+}
+
 /// 搜索过滤参数
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SearchFilter {

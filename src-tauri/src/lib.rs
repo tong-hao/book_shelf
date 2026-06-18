@@ -22,14 +22,17 @@ pub fn run() {
             commands::books::delete_book,
             commands::books::delete_books,
             commands::books::update_book_cover,
+            commands::books::open_book_file,
             commands::tags::list_tags,
             commands::tags::list_tags_with_count,
             commands::tags::create_tag,
+            commands::tags::update_tag_color,
             commands::tags::delete_tag,
             commands::tags::add_tags_to_books,
             commands::tags::remove_tag_from_book,
             commands::scan::scan_directory,
             commands::scan::search_books,
+            commands::import::import_books_csv,
         ])
         .setup(|app| {
             // Initialize database

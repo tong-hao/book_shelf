@@ -1,5 +1,6 @@
 import { confirm } from "@tauri-apps/plugin-dialog";
-import { revealItemInDir, openPath } from "@tauri-apps/plugin-opener";
+import { revealItemInDir } from "@tauri-apps/plugin-opener";
+import { openBookFile } from "../api/books";
 import { useBookStore } from "../store/bookStore";
 import { useState } from "react";
 import * as tagsApi from "../api/tags";
@@ -100,7 +101,7 @@ export function BulkActionBar() {
                   <button
                     onClick={async () => {
                       try {
-                        await openPath(book.file_path);
+                        await openBookFile(book.file_path);
                       } catch (e) {
                         console.error("Failed to open file:", e);
                       }

@@ -2,7 +2,7 @@ import type { BookWithTags } from "../api/types";
 import { BookCard } from "./BookCard";
 import { useBookStore } from "../store/bookStore";
 import { useUiStore } from "../store/uiStore";
-import { open } from "@tauri-apps/plugin-shell";
+import { openBookFile } from "../api/books";
 
 interface Props {
   books: BookWithTags[];
@@ -70,7 +70,7 @@ export function BookGrid({ books, isLoading }: Props) {
                   }`}
                   onClick={() => handleBookClick(book)}
                   onDoubleClick={() => {
-                    open(book.file_path).catch(console.error);
+                    openBookFile(book.file_path).catch(console.error);
                   }}
                 >
                   <td className="px-4 py-3 text-sm text-bookshelf-text">

@@ -4,6 +4,7 @@ interface UiState {
   sidebarOpen: boolean;
   showScanDialog: boolean;
   showTagManager: boolean;
+  showImportPage: boolean;
   viewMode: "grid" | "list";
   multiSelect: boolean;
   tagVersion: number;
@@ -11,6 +12,7 @@ interface UiState {
   toggleSidebar: () => void;
   setShowScanDialog: (show: boolean) => void;
   setShowTagManager: (show: boolean) => void;
+  setShowImportPage: (show: boolean) => void;
   setViewMode: (mode: "grid" | "list") => void;
   setMultiSelect: (on: boolean) => void;
   bumpTagVersion: () => void;
@@ -20,12 +22,14 @@ export const useUiStore = create<UiState>((set) => ({
   sidebarOpen: true,
   showScanDialog: false,
   showTagManager: false,
+  showImportPage: false,
   viewMode: "grid",
   multiSelect: false,
   tagVersion: 0,
 
   toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),
   setShowScanDialog: (show) => set({ showScanDialog: show }),
+  setShowImportPage: (show) => set({ showImportPage: show }),
   setShowTagManager: (show) => {
     if (!show) {
       set((state) => ({ showTagManager: show, tagVersion: state.tagVersion + 1 }));

@@ -37,3 +37,8 @@ export async function deleteBook(bookId: number): Promise<void> {
 export async function deleteBooks(bookIds: number[]): Promise<number> {
   return invoke("delete_books", { bookIds });
 }
+
+/** 用系统默认应用打开图书文件 */
+export async function openBookFile(path: string): Promise<void> {
+  return invoke("open_book_file", { path });
+}

@@ -23,6 +23,11 @@ export async function createTag(name: string, color?: string): Promise<Tag> {
   return invoke("create_tag", { name, color: color || null });
 }
 
+/** 更新标签颜色 */
+export async function updateTagColor(tagId: number, color: string | null): Promise<void> {
+  return invoke("update_tag_color", { tagId, color });
+}
+
 /** 删除标签 */
 export async function deleteTag(tagId: number): Promise<void> {
   return invoke("delete_tag", { tagId });
