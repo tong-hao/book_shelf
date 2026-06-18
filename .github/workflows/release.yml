@@ -1,0 +1,143 @@
+name: Build & Release
+
+on:
+  push:
+    tags:
+      - 'v*'                     # 推送 v 开头的 tag 时触发，如 v1.0.0、v2.1.3
+  workflow_dispatch:              # 也保留手动触发，方便调试
+
+jobs:
+  # ==================== 多平台构建 ====================
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            bundle-targets: deb
+            artifact-name: BookShelf-Linux-x86_64
+          - os: macos-latest
+            bundle-targets: dmg
+            artifact-name: BookShelf-macOS-arm64
+          - os: windows-latest
+            bundle-targets: nsis
+            artifact-name: BookShelf-Windows-x86_64
+
+    runs-on: $
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ==================== 工具链安装 ====================
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - name: Cache pnpm
+        uses: actions/cache@v4
+        with:
+          path: ~/.local/share/pnpm/store
+          key: $-pnpm-$
+          restore-keys: |
+            $-pnpm-
+
+      # ==================== 系统依赖（Linux） ====================
+
+      - name: Install Linux system dependencies
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libgtk-3-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev \
+            libssl-dev \
+            libsoup-3.0-dev \
+            libjavascriptcoregtk-4.1-dev
+
+      # ==================== 前端构建 ====================
+
+      - name: Install frontend dependencies
+        run: |
+          pnpm install --frozen-lockfile || true
+          pnpm approve-builds --all
+          pnpm install --frozen-lockfile
+        env:
+          PNPM_MINIMUM_RELEASE_AGE: "0"
+
+      # ==================== Tauri 构建 ====================
+
+      - name: Generate icons (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          python -m pip install Pillow
+          python -c "
+          from PIL import Image
+          img = Image.open('src-tauri/icons/icon.png')
+          img.save('src-tauri/icons/icon.ico', format='ICO', sizes=[(256,256),(128,128),(64,64),(48,48),(32,32),(16,16)])
+          "
+          Write-Host "icon.ico generated successfully"
+
+      - name: Build (macOS)
+        if: matrix.os == 'macos-latest'
+        run: pnpm tauri build --bundles $
+
+      - name: Build (Linux / Windows)
+        if: matrix.os != 'macos-latest'
+        run: pnpm tauri build --bundles $
+
+      # ==================== 上传产物（供 release job 使用） ====================
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: $
+          path: |
+            src-tauri/target/release/bundle/$/*
+            !src-tauri/target/release/bundle/$/.gitkeep
+          if-no-files-found: error
+          compression-level: 0
+
+  # ==================== 创建 GitHub Release ====================
+  create-release:
+    needs: build                  # 等所有平台构建完再执行
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write             # 必须有写入权限才能创建 Release
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release-assets     # 所有产物下载到 release-assets 目录
+          merge-multiple: true     # 合并到一个扁平目录
+
+      - name: List release assets
+        run: ls -lh release-assets/
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          token: $
+          name: "$"
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          files: release-assets/*
