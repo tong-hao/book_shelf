@@ -84,19 +84,21 @@ jobs:
 
       # ==================== Tauri 构建 ====================
 
+      # Windows 需要 .ico 图标，从源 PNG 生成
+      - name: Generate icons (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          python -m pip install Pillow
+          python -c "
+          from PIL import Image
+          img = Image.open('src-tauri/icons/icon.png')
+          img.save('src-tauri/icons/icon.ico', format='ICO', sizes=[(256,256),(128,128),(64,64),(48,48),(32,32),(16,16)])
+          "
+          Write-Host "icon.ico generated successfully"
+
       - name: Build (macOS)
         if: matrix.os == 'macos-latest'
         run: pnpm tauri build --bundles ${{ matrix.bundle-targets }}
-        env:
-          # GitHub Actions 的 macOS runner 无法签名，跳过以正常打包
-          APPLE_CERTIFICATE: ""
-          APPLE_CERTIFICATE_PASSWORD: ""
-          APPLE_SIGNING_IDENTITY: ""
-          APPLE_TEAM_ID: ""
-          APPLE_ID: ""
-          APPLE_PASSWORD: ""
-          APPLE_API_KEY_ID: ""
-          APPLE_API_ISSUER: ""
 
       - name: Build (Linux / Windows)
         if: matrix.os != 'macos-latest'
