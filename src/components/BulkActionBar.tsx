@@ -1,10 +1,12 @@
+import { confirm } from "@tauri-apps/plugin-dialog";
+import { revealItemInDir, openPath } from "@tauri-apps/plugin-opener";
 import { useBookStore } from "../store/bookStore";
 import { useState } from "react";
 import * as tagsApi from "../api/tags";
 import type { Tag } from "../api/types";
 
 export function BulkActionBar() {
-  const { selectedBookIds, clearSelection, deleteSelectedBooks, loadBooks } =
+  const { selectedBookIds, clearSelection, deleteSelectedBooks, loadBooks, books, selectAllBooks } =
     useBookStore();
   const [showTagPicker, setShowTagPicker] = useState(false);
   const [tags, setTags] = useState<Tag[]>([]);
@@ -41,7 +43,7 @@ export function BulkActionBar() {
           <div className="flex gap-2">
             <button
               onClick={handleBatchTag}
-              className="px-3 py-1.5 text-sm bg-bookshelf-accent text-white rounded-lg hover:bg-bookshelf-accent-hover transition-colors"
+              className="px-3 py-1.5 text-sm border border-bookshelf-border rounded-lg hover:bg-gray-50 transition-colors"
             >
               批量打标签
             </button>
@@ -60,14 +62,56 @@ export function BulkActionBar() {
             </button>
             <button
               onClick={async () => {
-                if (confirm(`确定删除 ${selectedBookIds.length} 本图书记录？`)) {
+                const confirmed = await confirm(
+                  `确定删除 ${selectedBookIds.length} 本图书记录？此操作不可恢复。`,
+                  { title: "删除确认", kind: "warning" }
+                );
+                if (confirmed) {
                   await deleteSelectedBooks();
                 }
               }}
-              className="px-3 py-1.5 text-sm border border-red-200 text-red-500 rounded-lg hover:bg-red-50 transition-colors"
+              className="px-3 py-1.5 text-sm border border-bookshelf-border rounded-lg hover:bg-gray-50 transition-colors"
             >
               删除记录
             </button>
+            <button
+              onClick={selectAllBooks}
+              className="px-3 py-1.5 text-sm border border-bookshelf-border rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              全选
+            </button>
+            {selectedBookIds.length === 1 && (() => {
+              const book = books.find((b) => b.id === selectedBookIds[0]);
+              if (!book) return null;
+              return (
+                <>
+                  <button
+                    onClick={async () => {
+                      try {
+                        await revealItemInDir(book.file_path);
+                      } catch (e) {
+                        console.error("Failed to reveal in Finder:", e);
+                      }
+                    }}
+                    className="px-3 py-1.5 text-sm border border-bookshelf-border rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    在 Finder 中显示
+                  </button>
+                  <button
+                    onClick={async () => {
+                      try {
+                        await openPath(book.file_path);
+                      } catch (e) {
+                        console.error("Failed to open file:", e);
+                      }
+                    }}
+                    className="px-3 py-1.5 text-sm border border-bookshelf-border rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    打开
+                  </button>
+                </>
+              );
+            })()}
           </div>
         </div>
 

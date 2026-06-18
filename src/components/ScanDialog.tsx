@@ -86,9 +86,9 @@ export function ScanDialog() {
 
         {/* Body */}
         <div className="px-6 py-4 space-y-4">
-          <p className="text-sm text-bookshelf-text-secondary">
-            选择一个包含 EPUB/PDF 文件的目录进行扫描。BookShelf 会自动提取元数据、封面并建立索引。
-          </p>
+           <p className="text-sm text-bookshelf-text-secondary">
+             选择一个包含 EPUB/PDF 文件的目录进行扫描，以文件名为书名建立索引。
+           </p>
 
           {/* 目录选择 */}
           <div>

@@ -53,7 +53,7 @@ export function TagManager() {
       <div className="bg-white rounded-2xl shadow-xl w-[420px] max-w-full mx-4 overflow-hidden">
         {/* Header */}
         <div className="px-6 py-4 border-b border-bookshelf-border flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-bookshelf-text">管理标签</h2>
+          <h2 className="text-lg font-semibold text-bookshelf-text">标签管理</h2>
           <button
             onClick={() => setShowTagManager(false)}
             className="p-1 rounded hover:bg-gray-100 transition-colors"

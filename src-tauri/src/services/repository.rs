@@ -246,6 +246,18 @@ pub fn update_book_field(book_id: i64, field: &str, value: &serde_json::Value) -
     })
 }
 
+/// 更新图书封面路径
+pub fn update_book_cover(book_id: i64, cover_path: &str) -> Result<(), String> {
+    db::with_db(|conn| {
+        conn.execute(
+            "UPDATE books SET cover_path = ?1 WHERE id = ?2",
+            params![cover_path, book_id],
+        )
+        .map_err(|e| format!("Failed to update cover path: {e}"))?;
+        Ok(())
+    })
+}
+
 /// 删除图书（仅删除记录，不删除文件）
 pub fn delete_book(book_id: i64) -> Result<(), String> {
     db::with_db(|conn| {

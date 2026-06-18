@@ -8,11 +8,41 @@ import { useBooks } from "../hooks/useBooks";
 import { useUiStore } from "../store/uiStore";
 import { useBookStore } from "../store/bookStore";
 import Tooltip from "../components/Tooltip";
+import { useState, useRef, useEffect } from "react";
+
+const SORT_OPTIONS = [
+  { label: "添加时间", field: "added_at", order: "DESC" },
+  { label: "书名 ↑", field: "title", order: "ASC" },
+  { label: "书名 ↓", field: "title", order: "DESC" },
+  { label: "作者 ↑", field: "author", order: "ASC" },
+  { label: "作者 ↓", field: "author", order: "DESC" },
+  { label: "格式", field: "format", order: "ASC" },
+  { label: "评分 ↑", field: "rating", order: "ASC" },
+  { label: "评分 ↓", field: "rating", order: "DESC" },
+  { label: "已读", field: "is_read", order: "DESC" },
+];
 
 export function Home() {
   const { books, isLoading } = useBooks();
   const { setShowScanDialog, toggleSidebar, viewMode, setViewMode, multiSelect, setMultiSelect } =
     useUiStore();
+  const { sortBy, sortOrder, setSortBy } = useBookStore();
+  const [sortOpen, setSortOpen] = useState(false);
+  const sortRef = useRef<HTMLDivElement>(null);
+
+  const currentSortLabel = SORT_OPTIONS.find(
+    (o) => o.field === sortBy && o.order === sortOrder
+  )?.label || "排序";
+
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (sortRef.current && !sortRef.current.contains(e.target as Node)) {
+        setSortOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
 
   return (
     <div className="h-full flex flex-col">
@@ -29,7 +59,7 @@ export function Home() {
               </svg>
             </button>
           </Tooltip>
-          <h1 className="text-lg font-semibold text-bookshelf-text">BookShelf</h1>
+          <h1 className="text-lg font-semibold text-bookshelf-text">书架</h1>
         </div>
 
         <div className="flex items-center gap-2">
@@ -65,6 +95,42 @@ export function Home() {
             </Tooltip>
           </div>
 
+          {/* 排序 */}
+          <div className="relative" ref={sortRef}>
+            <button
+              onClick={() => setSortOpen(!sortOpen)}
+              className="flex items-center gap-1 px-2 py-1.5 text-sm border border-bookshelf-border rounded-lg hover:bg-gray-100 transition-colors text-bookshelf-text-secondary whitespace-nowrap"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h14M3 12h10M3 20h6" />
+              </svg>
+              {currentSortLabel}
+              <svg className="w-3 h-3 ml-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            {sortOpen && (
+              <div className="absolute right-0 top-full mt-1 bg-white rounded-xl shadow-xl border border-bookshelf-border py-1 w-32 z-50">
+                {SORT_OPTIONS.map((opt) => (
+                  <button
+                    key={`${opt.field}-${opt.order}`}
+                    onClick={() => {
+                      setSortBy(opt.field, opt.order);
+                      setSortOpen(false);
+                    }}
+                    className={`w-full text-left px-3 py-1.5 text-sm hover:bg-gray-100 transition-colors ${
+                      sortBy === opt.field && sortOrder === opt.order
+                        ? "text-bookshelf-accent font-medium"
+                        : "text-bookshelf-text"
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
           {/* 单选/多选切换 */}
           <Tooltip content={multiSelect ? "切换为单选" : "切换为多选"}>
             <button
@@ -92,7 +158,7 @@ export function Home() {
 
           <button
             onClick={() => setShowScanDialog(true)}
-            className="px-4 py-1.5 text-sm bg-bookshelf-accent text-white rounded-lg hover:bg-bookshelf-accent-hover transition-colors flex items-center gap-1.5"
+            className="px-3 py-1.5 text-sm bg-bookshelf-accent text-white rounded-lg hover:bg-bookshelf-accent-hover transition-colors flex items-center gap-1.5"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />

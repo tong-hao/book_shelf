@@ -9,7 +9,7 @@ interface TooltipProps {
 export default function Tooltip({
   children,
   content,
-  delay = 2000,
+  delay = 500,
 }: TooltipProps) {
   const [visible, setVisible] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -52,22 +52,22 @@ export default function Tooltip({
             whitespace-nowrap pointer-events-none
           "
           style={{
-            bottom: "calc(100% + 7px)",
+            top: "calc(100% + 7px)",
             left: "50%",
             transform: "translateX(-50%)",
             animation: "tooltip-fade-in 0.15s ease-out",
           }}
         >
           {content}
-          {/* 小箭头 */}
+          {/* 小箭头（朝上） */}
           <div
-            className="absolute top-full left-1/2 -translate-x-1/2"
+            className="absolute bottom-full left-1/2 -translate-x-1/2"
             style={{
               width: 0,
               height: 0,
               borderLeft: "4px solid transparent",
               borderRight: "4px solid transparent",
-              borderTop: "4px solid rgba(31, 41, 55, 0.9)",
+              borderBottom: "4px solid rgba(31, 41, 55, 0.9)",
             }}
           />
         </div>

@@ -21,6 +21,7 @@ pub fn run() {
             commands::books::update_book_field,
             commands::books::delete_book,
             commands::books::delete_books,
+            commands::books::update_book_cover,
             commands::tags::list_tags,
             commands::tags::list_tags_with_count,
             commands::tags::create_tag,

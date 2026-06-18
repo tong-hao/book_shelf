@@ -1,12 +1,13 @@
 import { useBookStore } from "../store/bookStore";
 import { open } from "@tauri-apps/plugin-shell";
-import { revealItemInDir } from "@tauri-apps/plugin-opener";
 import { convertFileSrc } from "@tauri-apps/api/core";
 import { useState } from "react";
 import * as tagsApi from "../api/tags";
 import type { Tag } from "../api/types";
 import { useUiStore } from "../store/uiStore";
 import Tooltip from "./Tooltip";
+import { open as openDialog } from "@tauri-apps/plugin-dialog";
+import { updateBookCover } from "../api/books";
 
 export function BookDetail() {
   const { selectedBook, selectedBookIds, updateBookField } = useBookStore();
@@ -14,6 +15,46 @@ export function BookDetail() {
   const isMultiSelecting = multiSelect && selectedBookIds.length > 1;
   const [allTags, setAllTags] = useState<Tag[]>([]);
   const [showTagSelector, setShowTagSelector] = useState(false);
+  const [coverUploading, setCoverUploading] = useState(false);
+  const [editingTitle, setEditingTitle] = useState(false);
+  const [titleInput, setTitleInput] = useState("");
+  const [editingAuthor, setEditingAuthor] = useState(false);
+  const [authorInput, setAuthorInput] = useState("");
+
+  const handleChangeCover = async () => {
+    if (!selectedBook || coverUploading) return;
+    try {
+      const selected = await openDialog({
+        multiple: false,
+        filters: [
+          {
+            name: "图片",
+            extensions: ["png", "jpg", "jpeg", "webp", "gif"],
+          },
+        ],
+      });
+      if (!selected) return;
+      setCoverUploading(true);
+      await updateBookCover(selectedBook.id, selected);
+      useBookStore.getState().loadBooks();
+    } catch (e) {
+      console.error("Failed to change cover:", e);
+    } finally {
+      setCoverUploading(false);
+    }
+  };
+
+  const handleSaveTitle = async () => {
+    if (!selectedBook) return;
+    setEditingTitle(false);
+    await updateBookField(selectedBook.id, "title", titleInput);
+  };
+
+  const handleSaveAuthor = async () => {
+    if (!selectedBook) return;
+    setEditingAuthor(false);
+    await updateBookField(selectedBook.id, "author", authorInput);
+  };
 
   // 加载标签列表
   const loadTags = async () => {
@@ -47,15 +88,6 @@ export function BookDetail() {
       useBookStore.getState().loadBooks();
     } catch (e) {
       console.error("Failed to remove tag:", e);
-    }
-  };
-
-  const handleOpenInFinder = async () => {
-    if (!selectedBook) return;
-    try {
-      await revealItemInDir(selectedBook.file_path);
-    } catch (e) {
-      console.error("Failed to reveal in Finder:", e);
     }
   };
 
@@ -103,10 +135,14 @@ export function BookDetail() {
 
   return (
     <div className="w-80 min-w-[320px] bg-bookshelf-card border-l border-bookshelf-border flex flex-col h-full overflow-y-auto">
-      {/* 封面 */}
-      <div className="aspect-[3/4] bg-gradient-to-br from-blue-50 to-gray-100 flex items-center justify-center">
+      {/* 封面（点击更换） */}
+      <div
+        className="relative aspect-[3/4] bg-gradient-to-br from-blue-50 to-gray-100 flex items-center justify-center group cursor-pointer overflow-hidden"
+        onClick={handleChangeCover}
+      >
         {book.cover_path ? (
           <img
+            key={book.cover_path || 'no-cover'}
             src={convertFileSrc(book.cover_path || '')}
             alt={book.title}
             className="w-full h-full object-cover"
@@ -119,15 +155,73 @@ export function BookDetail() {
             {book.title.charAt(0).toUpperCase()}
           </span>
         )}
+
+        {/* hover 遮罩 + 更换封面提示 */}
+        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center">
+          <div className="opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center gap-1 text-white">
+            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            <span className="text-xs font-medium">
+              {coverUploading ? "上传中..." : "更换封面"}
+            </span>
+          </div>
+        </div>
       </div>
 
       {/* 基本信息 */}
       <div className="p-4 space-y-4">
         <div>
-          <h2 className="text-lg font-semibold text-bookshelf-text">{book.title}</h2>
-          {book.author && (
-            <p className="text-sm text-bookshelf-text-secondary mt-1">{book.author}</p>
+          {editingTitle ? (
+            <input
+              type="text"
+              className="w-full text-lg font-semibold text-bookshelf-text px-2 py-1 rounded border border-bookshelf-border bg-white focus:outline-none focus:ring-2 focus:ring-bookshelf-accent"
+              value={titleInput}
+              onChange={(e) => setTitleInput(e.target.value)}
+              onBlur={handleSaveTitle}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleSaveTitle();
+                if (e.key === "Escape") setEditingTitle(false);
+              }}
+              autoFocus
+            />
+          ) : (
+            <h2
+              className="text-lg font-semibold text-bookshelf-text cursor-pointer hover:text-bookshelf-accent"
+              onClick={() => {
+                setTitleInput(book.title);
+                setEditingTitle(true);
+              }}
+            >
+              {book.title}
+            </h2>
           )}
+          <div className="mt-1">
+            {editingAuthor ? (
+              <input
+                type="text"
+                className="w-full px-2 py-1 text-sm rounded border border-bookshelf-border bg-white focus:outline-none focus:ring-2 focus:ring-bookshelf-accent"
+                value={authorInput}
+                onChange={(e) => setAuthorInput(e.target.value)}
+                onBlur={handleSaveAuthor}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleSaveAuthor();
+                  if (e.key === "Escape") setEditingAuthor(false);
+                }}
+                autoFocus
+              />
+            ) : (
+              <p
+                className="text-sm text-bookshelf-text-secondary cursor-pointer hover:text-bookshelf-accent"
+                onClick={() => {
+                  setAuthorInput(book.author || "");
+                  setEditingAuthor(true);
+                }}
+              >
+                {book.author || "点击设置作者"}
+              </p>
+            )}
+          </div>
         </div>
 
         <div className="flex gap-2 text-xs text-bookshelf-text-secondary">
@@ -302,27 +396,7 @@ export function BookDetail() {
           </div>
         </div>
 
-        {/* 操作按钮 */}
-        <div className="flex gap-2 pt-2 border-t border-bookshelf-border">
-          <button
-            onClick={async () => {
-              try {
-                await open(book.file_path);
-              } catch (e) {
-                console.error("Failed to open file:", e);
-              }
-            }}
-            className="flex-1 px-3 py-2 text-sm bg-bookshelf-accent text-white rounded-lg hover:bg-bookshelf-accent-hover transition-colors"
-          >
-            打开
-          </button>
-          <button
-            onClick={handleOpenInFinder}
-            className="px-3 py-2 text-sm border border-bookshelf-border rounded-lg hover:bg-gray-50 transition-colors"
-          >
-            Finder 中显示
-          </button>
-        </div>
+        {/* 操作按钮（已移至底部批量操作栏） */}
       </div>
     </div>
   );

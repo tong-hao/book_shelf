@@ -20,6 +20,14 @@ export async function updateBookField(
   return invoke("update_book_field", { bookId, field, value });
 }
 
+/** 更换图书封面 */
+export async function updateBookCover(
+  bookId: number,
+  imagePath: string
+): Promise<string> {
+  return invoke("update_book_cover", { bookId, imagePath });
+}
+
 /** 删除图书记录 */
 export async function deleteBook(bookId: number): Promise<void> {
   return invoke("delete_book", { bookId });

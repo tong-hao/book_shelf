@@ -11,6 +11,8 @@ interface BookState {
   isLoading: boolean;
   searchKeyword: string;
   filteredTagIds: number[];
+  sortBy: string;
+  sortOrder: string;
 
   loadBooks: () => Promise<void>;
   selectBook: (book: BookWithTags | null) => void;
@@ -20,6 +22,7 @@ interface BookState {
   clearSelection: () => void;
   setSearchKeyword: (keyword: string) => void;
   setFilteredTagIds: (tagIds: number[]) => void;
+  setSortBy: (field: string, order: string) => void;
   updateBookField: (bookId: number, field: string, value: unknown) => Promise<void>;
   deleteSelectedBooks: () => Promise<void>;
   scanDirectory: (root: string) => Promise<scanApi.ScanReport>;
@@ -32,15 +35,20 @@ export const useBookStore = create<BookState>((set, get) => ({
   isLoading: false,
   searchKeyword: "",
   filteredTagIds: [],
+  sortBy: "added_at",
+  sortOrder: "DESC",
 
   loadBooks: async () => {
-    const { selectedBook } = get();
+    const { selectedBook, sortBy, sortOrder } = get();
     set({ isLoading: true });
     try {
       const { searchKeyword, filteredTagIds } = get();
-      const books = searchKeyword || filteredTagIds.length > 0
-        ? await scanApi.searchBooks({ keyword: searchKeyword, tag_ids: filteredTagIds })
-        : await booksApi.getBooks();
+      const books = await scanApi.searchBooks({
+        keyword: searchKeyword || undefined,
+        tag_ids: filteredTagIds.length > 0 ? filteredTagIds : undefined,
+        sort_by: sortBy,
+        sort_order: sortOrder,
+      });
 
       const updatedSelected = selectedBook
         ? books.find((b) => b.id === selectedBook.id) || null
@@ -94,6 +102,11 @@ export const useBookStore = create<BookState>((set, get) => ({
 
   setFilteredTagIds: (tagIds) => {
     set({ filteredTagIds: tagIds });
+    get().loadBooks();
+  },
+
+  setSortBy: (field, order) => {
+    set({ sortBy: field, sortOrder: order });
     get().loadBooks();
   },
 

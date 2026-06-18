@@ -57,6 +57,7 @@ export function BookCard({ book }: Props) {
       <div className="aspect-[3/4] bg-gradient-to-br from-blue-50 to-gray-100 relative flex items-center justify-center overflow-hidden">
         {book.cover_path ? (
           <img
+            key={book.cover_path}
             src={convertFileSrc(book.cover_path || '')}
             alt={book.title}
             className="w-full h-full object-cover"

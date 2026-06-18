@@ -1,5 +1,5 @@
 use crate::models::*;
-use crate::services::{metadata, repository};
+use crate::services::repository;
 use sha1::{Digest, Sha1};
 use std::fs;
 use std::io::Read;
@@ -7,7 +7,6 @@ use std::path::Path;
 use std::time::Instant;
 use tauri::Emitter;
 use tauri::AppHandle;
-use tauri::Manager;
 use walkdir::WalkDir;
 
 /// 扫描目录并导入电子书
@@ -107,17 +106,14 @@ pub fn scan_directory(app_handle: AppHandle, root: &str) -> Result<ScanReport, S
             continue; // 已存在，跳过
         }
 
-        // 提取元数据
-        let (mut title, author, cover_path) = match format.as_deref() {
-            Some("epub") => extract_epub_metadata(&app_handle, file_path),
-            Some("pdf") => extract_pdf_metadata(&app_handle, file_path),
-            _ => (file_name.clone(), None, None),
-        };
-
-        // 空标题时回退到文件名
-        if title.trim().is_empty() {
-            title = file_name.clone();
-        }
+        // 使用文件名（去掉扩展名）作为标题，不解析原始文件（性能优化）
+        let title = file_path
+            .file_stem()
+            .and_then(|n| n.to_str())
+            .unwrap_or("unknown")
+            .to_string();
+        let author = Some("未知".to_string());
+        let cover_path: Option<String> = None;
 
         // 插入数据库
         let book = Book {
@@ -178,70 +174,4 @@ fn compute_file_hash(path: &Path) -> Result<String, String> {
     }
 
     Ok(format!("{:x}", hasher.finalize()))
-}
-
-/// 提取 EPUB 元数据
-fn extract_epub_metadata(app_handle: &AppHandle, path: &Path) -> (String, Option<String>, Option<String>) {
-    match metadata::extract_epub_metadata(path) {
-        Ok((title, author, cover_data)) => {
-            let cover_path = if let Some(data) = cover_data {
-                save_cover_image(app_handle, &title, &data)
-            } else {
-                None
-            };
-            (title, author, cover_path)
-        }
-        Err(e) => {
-            log::warn!("Failed to extract EPUB metadata from {:?}: {}", path, e);
-            let fallback = path
-                .file_stem()
-                .and_then(|s| s.to_str())
-                .unwrap_or("Unknown")
-                .to_string();
-            (fallback, None, None)
-        }
-    }
-}
-
-/// 提取 PDF 元数据
-fn extract_pdf_metadata(_app_handle: &AppHandle, path: &Path) -> (String, Option<String>, Option<String>) {
-    match metadata::extract_pdf_metadata(path) {
-        Ok((title, author)) => {
-            (title, author, None) // PDF 封面暂不提取
-        }
-        Err(e) => {
-            log::warn!("Failed to extract PDF metadata from {:?}: {}", path, e);
-            let fallback = path
-                .file_stem()
-                .and_then(|s| s.to_str())
-                .unwrap_or("Unknown")
-                .to_string();
-            (fallback, None, None)
-        }
-    }
-}
-
-/// 保存封面图片到缓存目录
-fn save_cover_image(app_handle: &AppHandle, title: &str, data: &[u8]) -> Option<String> {
-    let app_data_dir = app_handle
-        .path()
-        .app_data_dir()
-        .ok()?;
-    let covers_dir = app_data_dir.join("covers");
-    std::fs::create_dir_all(&covers_dir).ok()?;
-
-    // 生成唯一文件名
-    let sanitized_title: String = title
-        .chars()
-        .map(|c| if c.is_alphanumeric() { c } else { '_' })
-        .take(50)
-        .collect();
-    let file_name = format!("{}_{}.jpg", sanitized_title, uuid::Uuid::new_v4().to_string().split('-').next().unwrap_or("0"));
-    let cover_path = covers_dir.join(&file_name);
-
-    if std::fs::write(&cover_path, data).is_ok() {
-        Some(cover_path.to_string_lossy().to_string())
-    } else {
-        None
-    }
 }

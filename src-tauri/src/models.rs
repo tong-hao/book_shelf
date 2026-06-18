@@ -72,10 +72,4 @@ pub struct SearchFilter {
     pub sort_order: Option<String>,
 }
 
-/// 更新图书字段请求
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UpdateFieldRequest {
-    pub book_id: i64,
-    pub field: String,
-    pub value: serde_json::Value,
-}
+

@@ -81,7 +81,7 @@ pub fn search_books(filter: &SearchFilter) -> Result<Vec<BookWithTags>, String> 
         // 排序
         let sort_by = filter.sort_by.as_deref().unwrap_or("added_at");
         let sort_order = filter.sort_order.as_deref().unwrap_or("DESC");
-        let allowed_sort_fields = ["added_at", "title", "author", "rating", "file_size"];
+        let allowed_sort_fields = ["added_at", "title", "author", "rating", "file_size", "format", "is_read"];
         if allowed_sort_fields.contains(&sort_by) {
             sql.push_str(&format!(" ORDER BY b.{} {}", sort_by, sort_order));
         } else {
