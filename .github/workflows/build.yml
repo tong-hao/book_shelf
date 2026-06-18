@@ -75,7 +75,7 @@ jobs:
       # ==================== 前端构建 ====================
 
       - name: Install frontend dependencies
-        run: pnpm install --frozen-lockfile --minimum-release-age=0
+        run: pnpm install --frozen-lockfile
         env:
           # 跳过 minimumReleaseAge 检查（CI 不需要供应链时效策略）
           PNPM_MINIMUM_RELEASE_AGE: "0"
