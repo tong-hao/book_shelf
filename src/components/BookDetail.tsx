@@ -33,7 +33,7 @@ export function BookDetail() {
           },
         ],
       });
-      if (!selected) return;
+      if (!selected || Array.isArray(selected)) return;
       setCoverUploading(true);
       await updateBookCover(selectedBook.id, selected);
       useBookStore.getState().loadBooks();

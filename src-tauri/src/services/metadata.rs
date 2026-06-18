@@ -269,7 +269,7 @@ pub fn extract_pdf_metadata(path: &Path) -> Result<(String, Option<String>), Str
     // 字典的 .get() 接受 &[u8] 参数（byte 字面量）
     let title = doc
         .trailer
-        .get(b"Info")
+        .get(b"/Info")
         .ok()
         .and_then(|info| info.as_dict().ok())
         .and_then(|info_dict| {
@@ -291,7 +291,7 @@ pub fn extract_pdf_metadata(path: &Path) -> Result<(String, Option<String>), Str
 
     let author = doc
         .trailer
-        .get(b"Info")
+        .get(b"/Info")
         .ok()
         .and_then(|info| info.as_dict().ok())
         .and_then(|info_dict| {

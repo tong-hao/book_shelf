@@ -1,6 +1,6 @@
 import { confirm } from "@tauri-apps/plugin-dialog";
 import { revealItemInDir } from "@tauri-apps/plugin-opener";
-import { openBookFile } from "../api/books";
+import { openBookFile, updateBookField } from "../api/books";
 import { useBookStore } from "../store/bookStore";
 import { useState } from "react";
 import * as tagsApi from "../api/tags";
@@ -51,9 +51,7 @@ export function BulkActionBar() {
             <button
               onClick={async () => {
                 for (const id of selectedBookIds) {
-                  await import("../api/books").then((m) =>
-                    m.updateBookField(id, "is_read", 1)
-                  );
+                  await updateBookField(id, "is_read", 1);
                 }
                 loadBooks();
               }}

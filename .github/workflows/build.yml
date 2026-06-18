@@ -20,7 +20,7 @@ jobs:
             bundle-targets: dmg
             artifact-name: BookShelf-macOS-arm64
           - os: windows-latest
-            bundle-targets: msi
+            bundle-targets: nsis
             artifact-name: BookShelf-Windows-x86_64
 
     runs-on: ${{ matrix.os }}
