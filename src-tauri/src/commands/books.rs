@@ -3,7 +3,6 @@ use std::path::Path;
 use crate::models::*;
 use crate::services::repository;
 use tauri::command;
-use tauri::Manager;
 
 /// 获取所有图书
 #[command]
@@ -38,15 +37,11 @@ pub fn delete_books(book_ids: Vec<i64>) -> Result<usize, String> {
 /// 更换图书封面
 #[command]
 pub fn update_book_cover(
-    app_handle: tauri::AppHandle,
     book_id: i64,
     image_path: String,
 ) -> Result<String, String> {
-    let app_data_dir = app_handle
-        .path()
-        .app_data_dir()
-        .map_err(|e| format!("Failed to get app data dir: {e}"))?;
-    let covers_dir = app_data_dir.join("covers");
+    let home = std::env::var("HOME").map_err(|e| format!("HOME not set: {e}"))?;
+    let covers_dir = std::path::PathBuf::from(&home).join(".book_shelf").join("covers");
     std::fs::create_dir_all(&covers_dir)
         .map_err(|e| format!("Failed to create covers dir: {e}"))?;
 

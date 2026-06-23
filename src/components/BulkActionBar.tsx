@@ -35,7 +35,7 @@ export function BulkActionBar() {
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-bookshelf-card border-t border-bookshelf-border shadow-lg z-40">
+    <div className="relative flex-shrink-0 bg-bookshelf-card border-t border-bookshelf-border shadow-lg">
       <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <span className="text-sm font-medium text-bookshelf-text">

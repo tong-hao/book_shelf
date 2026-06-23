@@ -5,7 +5,6 @@ mod services;
 
 use db::migrations;
 use std::path::PathBuf;
-use tauri::Manager;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -34,20 +33,17 @@ pub fn run() {
             commands::scan::search_books,
             commands::import::import_books_csv,
         ])
-        .setup(|app| {
-            // Initialize database
-            let app_data_dir: PathBuf = app
-                .path()
-                .app_data_dir()
-                .expect("Failed to get app data directory");
+        .setup(|_app| {
+            // 使用 ~/.book_shelf 作为数据目录
+            let home = std::env::var("HOME").expect("HOME environment variable not set");
+            let data_dir = PathBuf::from(&home).join(".book_shelf");
+            std::fs::create_dir_all(&data_dir)
+                .expect("Failed to create data directory ~/.book_shelf");
 
-            std::fs::create_dir_all(&app_data_dir)
-                .expect("Failed to create app data directory");
-
-            let covers_dir = app_data_dir.join("covers");
+            let covers_dir = data_dir.join("covers");
             std::fs::create_dir_all(&covers_dir).ok();
 
-            let db_path = app_data_dir.join("library.db");
+            let db_path = data_dir.join("library.db");
             log::info!("Database path: {:?}", db_path);
 
             migrations::initialize(&db_path)

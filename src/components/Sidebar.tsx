@@ -16,10 +16,11 @@ export function Sidebar() {
   }, [filteredTagIds, tagVersion]); // tagVersion 变更时刷新（如标签管理关闭后）
 
   const toggleTag = (tagId: number) => {
-    if (filteredTagIds.includes(tagId)) {
-      setFilteredTagIds(filteredTagIds.filter((id) => id !== tagId));
+    // 单选模式：如果已选中同一个标签，取消选择回到"全部图书"
+    if (filteredTagIds.length === 1 && filteredTagIds[0] === tagId) {
+      setFilteredTagIds([]);
     } else {
-      setFilteredTagIds([...filteredTagIds, tagId]);
+      setFilteredTagIds([tagId]);
     }
   };
 

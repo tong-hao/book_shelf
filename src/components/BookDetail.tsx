@@ -1,7 +1,7 @@
 import { useBookStore } from "../store/bookStore";
 import { open } from "@tauri-apps/plugin-shell";
 import { convertFileSrc } from "@tauri-apps/api/core";
-import { useState } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import * as tagsApi from "../api/tags";
 import type { Tag } from "../api/types";
 import { useUiStore } from "../store/uiStore";
@@ -20,6 +20,32 @@ export function BookDetail() {
   const [titleInput, setTitleInput] = useState("");
   const [editingAuthor, setEditingAuthor] = useState(false);
   const [authorInput, setAuthorInput] = useState("");
+  const [remarkLocal, setRemarkLocal] = useState("");
+  const remarkTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // 切换图书时，同步新图书的备注到本地 state
+  useEffect(() => {
+    setRemarkLocal(selectedBook?.remark || "");
+    // 清除可能残留的 debounce timer
+    return () => {
+      if (remarkTimerRef.current) {
+        clearTimeout(remarkTimerRef.current);
+      }
+    };
+  }, [selectedBook?.id]);
+
+  // debounced 提交备注到后端
+  const debouncedUpdateRemark = useCallback(
+    (bookId: number, value: string) => {
+      if (remarkTimerRef.current) {
+        clearTimeout(remarkTimerRef.current);
+      }
+      remarkTimerRef.current = setTimeout(() => {
+        updateBookField(bookId, "remark", value);
+      }, 500);
+    },
+    [updateBookField]
+  );
 
   const handleChangeCover = async () => {
     if (!selectedBook || coverUploading) return;
@@ -115,7 +141,7 @@ export function BookDetail() {
   // 多选模式：显示置灰提示
   if (isMultiSelecting) {
     return (
-      <div className="w-80 min-w-[320px] bg-bookshelf-card border-l border-bookshelf-border flex flex-col h-full">
+      <div className="w-80 min-w-[320px] bg-bookshelf-card border-l border-bookshelf-border flex flex-col h-full min-h-0">
         <div className="flex-1 flex items-center justify-center p-6">
           <div className="text-center">
             <svg className="mx-auto h-10 w-10 text-bookshelf-text-secondary/50 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -134,7 +160,7 @@ export function BookDetail() {
   }
 
   return (
-    <div className="w-80 min-w-[320px] bg-bookshelf-card border-l border-bookshelf-border flex flex-col h-full overflow-y-auto">
+    <div className="w-80 min-w-[320px] bg-bookshelf-card border-l border-bookshelf-border flex flex-col h-full overflow-y-auto min-h-0">
       {/* 封面（点击更换） */}
       <div
         className="relative aspect-[3/4] bg-gradient-to-br from-blue-50 to-gray-100 flex items-center justify-center group cursor-pointer overflow-hidden"
@@ -170,7 +196,7 @@ export function BookDetail() {
       </div>
 
       {/* 基本信息 */}
-      <div className="p-4 space-y-4">
+      <div className="p-4 pb-8 space-y-4">
         <div>
           {editingTitle ? (
             <input
@@ -361,8 +387,12 @@ export function BookDetail() {
             备注
           </label>
           <textarea
-            value={book.remark || ""}
-            onChange={(e) => updateBookField(book.id, "remark", e.target.value)}
+            value={remarkLocal}
+            onChange={(e) => {
+              const val = e.target.value;
+              setRemarkLocal(val);
+              debouncedUpdateRemark(book.id, val);
+            }}
             placeholder="添加备注..."
             className="w-full px-3 py-2 text-sm rounded-lg border border-bookshelf-border bg-white focus:outline-none focus:ring-2 focus:ring-bookshelf-accent focus:border-transparent resize-none h-20"
           />
