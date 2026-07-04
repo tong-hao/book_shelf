@@ -7,7 +7,7 @@
 BookShelf 是一款面向 macOS 的本地电子书管理工具，帮你把散落在硬盘各处的 EPUB / PDF 书籍整理成有序的个人书架。支持标签分类、搜索、评分标注、自定义封面等特性，所有数据存储在本地，无需联网。
 
 <p align="center">
-  <img src="docs/screenshot.png" alt="BookShelf 截图" width="720" />
+  <img src="docs/book_shelf1.png" alt="BookShelf 截图" width="720" />
 </p>
 
 ## ✨ 功能一览
