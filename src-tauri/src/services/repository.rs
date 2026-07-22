@@ -202,6 +202,60 @@ pub fn update_book_path(book_id: i64, new_path: &str) -> Result<(), String> {
     })
 }
 
+/// 根据书名查找图书（用于扫描时复用无本地文件的图书记录）
+pub fn find_book_by_title(title: &str) -> Result<Option<Book>, String> {
+    db::with_db(|conn| {
+        let mut stmt = conn
+            .prepare(
+                "SELECT id, file_path, file_hash, format, title, author, cover_path,
+                        file_size, added_at, rating, is_read, liked, note_link, remark
+                 FROM books WHERE title = ?1 LIMIT 1",
+            )
+            .map_err(|e| format!("Failed to prepare query: {e}"))?;
+
+        let mut rows = stmt
+            .query_map(params![title], |row| {
+                Ok(Book {
+                    id: row.get(0)?,
+                    file_path: row.get(1)?,
+                    file_hash: row.get(2)?,
+                    format: row.get(3)?,
+                    title: row.get(4)?,
+                    author: row.get(5)?,
+                    cover_path: row.get(6)?,
+                    file_size: row.get(7)?,
+                    added_at: row.get(8)?,
+                    rating: row.get(9)?,
+                    is_read: row.get(10)?,
+                    liked: row.get(11)?,
+                    note_link: row.get(12)?,
+                    remark: row.get(13)?,
+                })
+            })
+            .map_err(|e| format!("Failed to query book by title: {e}"))?;
+
+        Ok(rows.next().and_then(|r| r.ok()))
+    })
+}
+
+/// 更新图书的文件信息（扫描绑定本地文件时）
+pub fn update_book_file_info(
+    book_id: i64,
+    file_path: &str,
+    file_hash: Option<&str>,
+    format: Option<&str>,
+    file_size: Option<i64>,
+) -> Result<(), String> {
+    db::with_db(|conn| {
+        conn.execute(
+            "UPDATE books SET file_path = ?1, file_hash = ?2, format = ?3, file_size = ?4 WHERE id = ?5",
+            params![file_path, file_hash, format, file_size, book_id],
+        )
+        .map_err(|e| format!("Failed to update book file info: {e}"))?;
+        Ok(())
+    })
+}
+
 /// 更新图书字段（个人标注）
 pub fn update_book_field(book_id: i64, field: &str, value: &serde_json::Value) -> Result<(), String> {
     // 白名单校验

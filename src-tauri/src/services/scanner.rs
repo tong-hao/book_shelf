@@ -112,6 +112,33 @@ pub fn scan_directory(app_handle: AppHandle, root: &str) -> Result<ScanReport, S
             .and_then(|n| n.to_str())
             .unwrap_or("unknown")
             .to_string();
+
+        // 检查是否已存在同名图书且未绑定本地文件（例如 CSV 导入的图书记录）
+        // 如果存在，则复用该记录，更新其文件信息，而不是新增一条记录
+        if let Ok(Some(existing_by_title)) = repository::find_book_by_title(&title) {
+            let existing_path = Path::new(&existing_by_title.file_path);
+            let has_local_file = existing_path.is_file()
+                || !existing_by_title.file_path.starts_with("csv_import_");
+
+            if !has_local_file {
+                // 该图书记录没有绑定本地文件，复用并更新其文件信息
+                if let Err(e) = repository::update_book_file_info(
+                    existing_by_title.id,
+                    &path_str,
+                    file_hash.as_deref(),
+                    format.as_deref(),
+                    file_size,
+                ) {
+                    report.errors.push(format!(
+                        "Failed to bind file for existing book '{title}': {e}"
+                    ));
+                } else {
+                    report.updated += 1;
+                }
+                continue;
+            }
+        }
+
         let author = Some("未知".to_string());
         let cover_path: Option<String> = None;
 
