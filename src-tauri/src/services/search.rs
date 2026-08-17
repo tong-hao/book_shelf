@@ -9,6 +9,7 @@ pub fn search_books(filter: &SearchFilter) -> Result<Vec<BookWithTags>, String> 
         let has_keyword = filter.keyword.as_ref().map_or(false, |k| !k.is_empty());
         let has_tags = filter.tag_ids.as_ref().map_or(false, |ids| !ids.is_empty());
         let has_read_filter = filter.is_read.is_some();
+        let has_liked_filter = filter.liked.is_some();
         let has_rating_filter = filter.min_rating.is_some();
 
         // 构建查询
@@ -53,6 +54,10 @@ pub fn search_books(filter: &SearchFilter) -> Result<Vec<BookWithTags>, String> 
 
         if has_read_filter {
             conditions.push("b.is_read = ?".to_string());
+        }
+
+        if has_liked_filter {
+            conditions.push("b.liked = ?".to_string());
         }
 
         if has_rating_filter {
@@ -116,6 +121,10 @@ pub fn search_books(filter: &SearchFilter) -> Result<Vec<BookWithTags>, String> 
 
         if has_read_filter {
             param_values.push(Box::new(filter.is_read.unwrap()));
+        }
+
+        if has_liked_filter {
+            param_values.push(Box::new(filter.liked.unwrap()));
         }
 
         if has_rating_filter {

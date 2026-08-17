@@ -11,6 +11,8 @@ interface BookState {
   isLoading: boolean;
   searchKeyword: string;
   filteredTagIds: number[];
+  filterByRead: boolean;
+  filterByLiked: boolean;
   sortBy: string;
   sortOrder: string;
 
@@ -22,6 +24,8 @@ interface BookState {
   clearSelection: () => void;
   setSearchKeyword: (keyword: string) => void;
   setFilteredTagIds: (tagIds: number[]) => void;
+  setFilterByRead: (value: boolean) => void;
+  setFilterByLiked: (value: boolean) => void;
   setSortBy: (field: string, order: string) => void;
   updateBookField: (bookId: number, field: string, value: unknown) => Promise<void>;
   deleteSelectedBooks: () => Promise<void>;
@@ -35,6 +39,8 @@ export const useBookStore = create<BookState>((set, get) => ({
   isLoading: false,
   searchKeyword: "",
   filteredTagIds: [],
+  filterByRead: false,
+  filterByLiked: false,
   sortBy: "added_at",
   sortOrder: "DESC",
 
@@ -42,10 +48,12 @@ export const useBookStore = create<BookState>((set, get) => ({
     const { selectedBook, sortBy, sortOrder } = get();
     set({ isLoading: true });
     try {
-      const { searchKeyword, filteredTagIds } = get();
+      const { searchKeyword, filteredTagIds, filterByRead, filterByLiked } = get();
       const books = await scanApi.searchBooks({
         keyword: searchKeyword || undefined,
         tag_ids: filteredTagIds.length > 0 ? filteredTagIds : undefined,
+        is_read: filterByRead ? 1 : undefined,
+        liked: filterByLiked ? 1 : undefined,
         sort_by: sortBy,
         sort_order: sortOrder,
       });
@@ -102,6 +110,16 @@ export const useBookStore = create<BookState>((set, get) => ({
 
   setFilteredTagIds: (tagIds) => {
     set({ filteredTagIds: tagIds });
+    get().loadBooks();
+  },
+
+  setFilterByRead: (value) => {
+    set({ filterByRead: value });
+    get().loadBooks();
+  },
+
+  setFilterByLiked: (value) => {
+    set({ filterByLiked: value });
     get().loadBooks();
   },
 

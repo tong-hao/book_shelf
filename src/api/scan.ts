@@ -18,6 +18,7 @@ export interface SearchFilter {
   keyword?: string;
   tag_ids?: number[];
   is_read?: number;
+  liked?: number;
   min_rating?: number;
   sort_by?: string;
   sort_order?: string;

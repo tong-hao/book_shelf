@@ -7,7 +7,7 @@ import Tooltip from "./Tooltip";
 
 export function Sidebar() {
   const [tags, setTags] = useState<TagWithCount[]>([]);
-  const { filteredTagIds, setFilteredTagIds, setSearchKeyword, searchKeyword } =
+  const { filteredTagIds, setFilteredTagIds, setSearchKeyword, searchKeyword, filterByRead, setFilterByRead, filterByLiked, setFilterByLiked } =
     useBookStore();
   const { sidebarOpen, toggleSidebar, setShowTagManager, setShowImportPage, tagVersion } = useUiStore();
 
@@ -16,6 +16,9 @@ export function Sidebar() {
   }, [filteredTagIds, tagVersion]); // tagVersion 变更时刷新（如标签管理关闭后）
 
   const toggleTag = (tagId: number) => {
+    // 先清除已读和喜欢过滤器
+    setFilterByRead(false);
+    setFilterByLiked(false);
     // 单选模式：如果已选中同一个标签，取消选择回到"全部图书"
     if (filteredTagIds.length === 1 && filteredTagIds[0] === tagId) {
       setFilteredTagIds([]);
@@ -71,22 +74,62 @@ export function Sidebar() {
 
       {/* 标签列表 */}
       <div className="flex-1 overflow-y-auto px-3 pb-3">
-        {tags.length === 0 ? (
-          <p className="text-xs text-bookshelf-text-secondary text-center py-4">
-            暂无标签
-          </p>
-        ) : (
+        <div className="space-y-0.5">
+          <button
+            onClick={() => {
+              setFilteredTagIds([]);
+              setFilterByRead(false);
+              setFilterByLiked(false);
+            }}
+            className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+              filteredTagIds.length === 0 && !filterByRead && !filterByLiked
+                ? "bg-bookshelf-accent text-white"
+                : "hover:bg-gray-300/50 text-bookshelf-text"
+            }`}
+          >
+            全部图书
+          </button>
+
+          {/* 固定过滤器：已读、喜欢 */}
+          <button
+            onClick={() => {
+              setFilteredTagIds([]);
+              setFilterByRead(true);
+              setFilterByLiked(false);
+            }}
+            className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors flex items-center gap-2 ${
+              filterByRead && !filterByLiked
+                ? "bg-bookshelf-accent text-white"
+                : "hover:bg-gray-300/50 text-bookshelf-text"
+            }`}
+          >
+            <span className="w-2.5 h-2.5 rounded-full bg-green-500 flex-shrink-0" />
+            已读
+          </button>
+
+          <button
+            onClick={() => {
+              setFilteredTagIds([]);
+              setFilterByRead(false);
+              setFilterByLiked(true);
+            }}
+            className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors flex items-center gap-2 ${
+              filterByLiked && !filterByRead
+                ? "bg-bookshelf-accent text-white"
+                : "hover:bg-gray-300/50 text-bookshelf-text"
+            }`}
+          >
+            <span className="w-2.5 h-2.5 rounded-full bg-red-500 flex-shrink-0" />
+            喜欢
+          </button>
+
+          {/* 分割线 */}
+          {tags.length > 0 && <div className="my-2 border-t border-bookshelf-border" />}
+        </div>
+
+        {/* 用户自定义标签 */}
+        {tags.length > 0 && (
           <div className="space-y-0.5">
-            <button
-              onClick={() => setFilteredTagIds([])}
-              className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
-                filteredTagIds.length === 0
-                  ? "bg-bookshelf-accent text-white"
-                  : "hover:bg-gray-300/50 text-bookshelf-text"
-              }`}
-            >
-              全部图书
-            </button>
             {tags.map((tag) => (
               <button
                 key={tag.id}

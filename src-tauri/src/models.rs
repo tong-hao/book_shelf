@@ -78,6 +78,7 @@ pub struct SearchFilter {
     pub keyword: Option<String>,
     pub tag_ids: Option<Vec<i64>>,
     pub is_read: Option<i64>,
+    pub liked: Option<i64>,
     pub min_rating: Option<i64>,
     pub sort_by: Option<String>,
     pub sort_order: Option<String>,
