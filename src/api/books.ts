@@ -28,6 +28,14 @@ export async function updateBookCover(
   return invoke("update_book_cover", { bookId, imagePath });
 }
 
+/** 更换图书封面（通过 Base64 数据，用于粘贴上传） */
+export async function updateBookCoverFromBase64(
+  bookId: number,
+  imageBase64: string
+): Promise<string> {
+  return invoke("update_book_cover_from_base64", { bookId, imageBase64 });
+}
+
 /** 删除图书记录 */
 export async function deleteBook(bookId: number): Promise<void> {
   return invoke("delete_book", { bookId });

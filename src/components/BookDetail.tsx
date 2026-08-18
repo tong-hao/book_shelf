@@ -7,7 +7,7 @@ import type { Tag } from "../api/types";
 import { useUiStore } from "../store/uiStore";
 import Tooltip from "./Tooltip";
 import { open as openDialog } from "@tauri-apps/plugin-dialog";
-import { updateBookCover } from "../api/books";
+import { updateBookCover, updateBookCoverFromBase64 } from "../api/books";
 
 export function BookDetail() {
   const { selectedBook, selectedBookIds, updateBookField } = useBookStore();
@@ -69,6 +69,46 @@ export function BookDetail() {
       setCoverUploading(false);
     }
   };
+
+  // 粘贴图片上传封面
+  useEffect(() => {
+    const handlePaste = async (e: ClipboardEvent) => {
+      if (!selectedBook || coverUploading) return;
+
+      const items = e.clipboardData?.items;
+      if (!items) return;
+
+      for (const item of items) {
+        if (item.type.startsWith("image/")) {
+          const blob = item.getAsFile();
+          if (!blob) continue;
+
+          try {
+            setCoverUploading(true);
+
+            // 将 Blob 转换为 Base64
+            const base64 = await new Promise<string>((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onload = () => resolve(reader.result as string);
+              reader.onerror = reject;
+              reader.readAsDataURL(blob);
+            });
+
+            await updateBookCoverFromBase64(selectedBook.id, base64);
+            useBookStore.getState().loadBooks();
+          } catch (e) {
+            console.error("Failed to upload pasted image:", e);
+          } finally {
+            setCoverUploading(false);
+          }
+          break;
+        }
+      }
+    };
+
+    document.addEventListener("paste", handlePaste);
+    return () => document.removeEventListener("paste", handlePaste);
+  }, [selectedBook, coverUploading]);
 
   const handleSaveTitle = async () => {
     if (!selectedBook) return;
@@ -190,6 +230,9 @@ export function BookDetail() {
             </svg>
             <span className="text-xs font-medium">
               {coverUploading ? "上传中..." : "更换封面"}
+            </span>
+            <span className="text-xs opacity-70">
+              点击选择或粘贴图片
             </span>
           </div>
         </div>
