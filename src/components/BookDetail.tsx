@@ -112,8 +112,14 @@ export function BookDetail() {
 
   const handleSaveTitle = async () => {
     if (!selectedBook) return;
+    const trimmedTitle = titleInput.trim();
+    if (!trimmedTitle) {
+      // 书名不能为空，恢复原标题
+      setTitleInput(book.title);
+      return;
+    }
     setEditingTitle(false);
-    await updateBookField(selectedBook.id, "title", titleInput);
+    await updateBookField(selectedBook.id, "title", trimmedTitle);
   };
 
   const handleSaveAuthor = async () => {
@@ -218,7 +224,7 @@ export function BookDetail() {
           />
         ) : (
           <span className="text-6xl font-bold text-gray-300">
-            {book.title.charAt(0).toUpperCase()}
+            {(book.title || "B").charAt(0).toUpperCase()}
           </span>
         )}
 
@@ -262,7 +268,7 @@ export function BookDetail() {
                 setEditingTitle(true);
               }}
             >
-              {book.title}
+              {book.title || "book name is empty"}
             </h2>
           )}
           <div className="mt-1">
