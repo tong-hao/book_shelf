@@ -52,13 +52,13 @@ export function TagManager() {
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-2xl shadow-xl w-[420px] max-w-full mx-4 overflow-hidden">
+      <div className="bg-white dark:bg-bookshelf-card rounded-2xl shadow-xl w-[420px] max-w-full mx-4 overflow-hidden">
         {/* Header */}
         <div className="px-6 py-4 border-b border-bookshelf-border flex items-center justify-between">
           <h2 className="text-lg font-semibold text-bookshelf-text">标签管理</h2>
           <button
             onClick={() => setShowTagManager(false)}
-            className="p-1 rounded hover:bg-gray-100 transition-colors"
+            className="p-1 rounded hover:bg-gray-100 dark:hover:bg-white dark:bg-bookshelf-card/10 transition-colors"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -114,7 +114,7 @@ export function TagManager() {
                 tags.map((tag) => (
                   <div
                     key={tag.id}
-                    className="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-gray-50"
+                    className="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-gray-50 dark:hover:bg-white dark:bg-bookshelf-card/10"
                   >
                     <div className="flex items-center gap-2">
                       <div
@@ -164,7 +164,7 @@ export function TagManager() {
         <div className="px-6 py-4 border-t border-bookshelf-border flex justify-end">
           <button
             onClick={() => setShowTagManager(false)}
-            className="px-4 py-2 text-sm border border-bookshelf-border rounded-lg hover:bg-gray-50 transition-colors"
+            className="px-4 py-2 text-sm border border-bookshelf-border rounded-lg hover:bg-gray-50 dark:hover:bg-white dark:bg-bookshelf-card/10 transition-colors"
           >
             关闭
           </button>

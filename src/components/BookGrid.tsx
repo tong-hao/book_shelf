@@ -47,7 +47,7 @@ export function BookGrid({ books, isLoading }: Props) {
     return (
       <div className="overflow-auto">
         <table className="min-w-full divide-y divide-bookshelf-border">
-          <thead className="bg-gray-50">
+          <thead className="bg-gray-50 dark:bg-bookshelf-sidebar">
             <tr>
               <th className="px-4 py-3 text-left text-xs font-medium text-bookshelf-text-secondary uppercase tracking-wider">书名</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-bookshelf-text-secondary uppercase tracking-wider">作者</th>
@@ -57,7 +57,7 @@ export function BookGrid({ books, isLoading }: Props) {
               <th className="px-4 py-3 text-left text-xs font-medium text-bookshelf-text-secondary uppercase tracking-wider">已读</th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-bookshelf-border">
+          <tbody className="bg-white dark:bg-bookshelf-card divide-y divide-bookshelf-border">
             {books.map((book) => {
               const isSelected = selectedBookIds.includes(book.id);
               return (
@@ -66,7 +66,7 @@ export function BookGrid({ books, isLoading }: Props) {
                   className={`cursor-pointer transition-colors ${
                     isSelected
                       ? "bg-bookshelf-accent/10 hover:bg-bookshelf-accent/15"
-                      : "hover:bg-gray-50"
+                      : "hover:bg-gray-50 dark:hover:bg-white/10"
                   }`}
                   onClick={() => handleBookClick(book)}
                   onDoubleClick={() => {

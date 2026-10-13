@@ -8,6 +8,7 @@ import { useBooks } from "../hooks/useBooks";
 import { useUiStore } from "../store/uiStore";
 import { useBookStore } from "../store/bookStore";
 import Tooltip from "../components/Tooltip";
+import { ThemeToggleButton } from "../components/ThemeToggleButton";
 import { useState, useRef, useEffect } from "react";
 
 const SORT_OPTIONS = [
@@ -60,6 +61,7 @@ export function Home() {
             </button>
           </Tooltip>
           <h1 className="text-lg font-semibold text-bookshelf-text">书架</h1>
+          <ThemeToggleButton />
         </div>
 
         <div className="flex items-center gap-2">
@@ -110,7 +112,7 @@ export function Home() {
               </svg>
             </button>
             {sortOpen && (
-              <div className="absolute right-0 top-full mt-1 bg-white rounded-xl shadow-xl border border-bookshelf-border py-1 w-32 z-50">
+              <div className="absolute right-0 top-full mt-1 bg-white dark:bg-bookshelf-card rounded-xl shadow-xl border border-bookshelf-border py-1 w-32 z-50">
                 {SORT_OPTIONS.map((opt) => (
                   <button
                     key={`${opt.field}-${opt.order}`}

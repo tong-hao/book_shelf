@@ -86,6 +86,19 @@ pub fn update_book_field(book_id: i64, field: String, value: serde_json::Value) 
     repository::update_book_field(book_id, &field, &value)
 }
 
+/// 修改图书文件路径
+/// 同时根据新文件刷新 format 与 file_size（文件不存在时仅更新路径）
+#[command]
+pub fn update_book_path(book_id: i64, new_path: String) -> Result<(), String> {
+    let path = std::path::Path::new(&new_path);
+    let format = path
+        .extension()
+        .and_then(|e| e.to_str())
+        .map(|e| e.to_lowercase());
+    let file_size = std::fs::metadata(&new_path).ok().map(|m| m.len() as i64);
+    repository::update_book_file_info(book_id, &new_path, None, format.as_deref(), file_size)
+}
+
 /// 删除图书记录
 #[command]
 pub fn delete_book(book_id: i64) -> Result<(), String> {

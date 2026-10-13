@@ -1,8 +1,6 @@
 use crate::models::*;
 use crate::services::repository;
-use sha1::{Digest, Sha1};
 use std::fs;
-use std::io::Read;
 use std::path::Path;
 use std::time::Instant;
 use tauri::Emitter;
@@ -64,14 +62,9 @@ pub fn scan_directory(app_handle: AppHandle, root: &str) -> Result<ScanReport, S
             },
         );
 
-        // 计算文件哈希（前 1MB SHA1）
-        let file_hash = match compute_file_hash(file_path) {
-            Ok(h) => Some(h),
-            Err(e) => {
-                log::warn!("Failed to hash {}: {}", path_str, e);
-                None
-            }
-        };
+        // 仅记录文件路径，不读取文件内容（OneDrive 等云盘读取内容会触发整文件下载，极慢）
+        // 去重改为基于路径，避免为了算哈希而去读取文件
+        let file_hash: Option<String> = None;
 
         // 获取文件大小
         let file_size = fs::metadata(file_path).ok().map(|m| m.len() as i64);
@@ -177,28 +170,4 @@ pub fn scan_directory(app_handle: AppHandle, root: &str) -> Result<ScanReport, S
     );
 
     Ok(report)
-}
-
-/// 计算文件前 1MB 的 SHA1 哈希
-fn compute_file_hash(path: &Path) -> Result<String, String> {
-    let mut file = fs::File::open(path).map_err(|e| format!("Failed to open file: {e}"))?;
-    let mut hasher = Sha1::new();
-    let mut buffer = [0u8; 8192]; // 8KB buffer
-    let mut total_read = 0;
-    let max_read: usize = 1_048_576; // 1MB
-
-    while total_read < max_read {
-        let remaining = max_read - total_read;
-        let to_read = remaining.min(buffer.len());
-        let bytes_read = file
-            .read(&mut buffer[..to_read])
-            .map_err(|e| format!("Failed to read file: {e}"))?;
-        if bytes_read == 0 {
-            break;
-        }
-        hasher.update(&buffer[..bytes_read]);
-        total_read += bytes_read;
-    }
-
-    Ok(format!("{:x}", hasher.finalize()))
 }

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useUiStore } from "../store/uiStore";
 import { useBookStore } from "../store/bookStore";
+import { ThemeToggleButton } from "../components/ThemeToggleButton";
 import * as importApi from "../api/import";
 
 const PLACEHOLDER = `三体,科幻,刘慈欣
@@ -57,6 +58,7 @@ export function ImportPage() {
             </svg>
           </button>
           <h1 className="text-lg font-semibold text-bookshelf-text">导入图书标签</h1>
+          <ThemeToggleButton />
         </div>
       </header>
 
@@ -80,7 +82,7 @@ export function ImportPage() {
               onChange={(e) => setCsvText(e.target.value)}
               placeholder={PLACEHOLDER}
               rows={12}
-              className="w-full px-4 py-3 text-sm rounded-lg border border-bookshelf-border bg-white focus:outline-none focus:ring-2 focus:ring-bookshelf-accent focus:border-transparent font-mono resize-y"
+              className="w-full px-4 py-3 text-sm rounded-lg border border-bookshelf-border bg-white dark:bg-bookshelf-card focus:outline-none focus:ring-2 focus:ring-bookshelf-accent focus:border-transparent font-mono resize-y"
             />
           </div>
 

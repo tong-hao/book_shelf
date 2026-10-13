@@ -40,7 +40,7 @@ export function Sidebar() {
           <Tooltip content="导入标签">
             <button
               onClick={() => setShowImportPage(true)}
-              className="p-1.5 rounded hover:bg-gray-300/50 transition-colors"
+              className="p-1.5 rounded hover:bg-gray-300/50 dark:hover:bg-white/10 transition-colors"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3" />
@@ -50,7 +50,7 @@ export function Sidebar() {
           <Tooltip content="标签管理">
             <button
               onClick={() => setShowTagManager(true)}
-              className="p-1.5 rounded hover:bg-gray-300/50 transition-colors"
+              className="p-1.5 rounded hover:bg-gray-300/50 dark:hover:bg-white/10 transition-colors"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
@@ -68,7 +68,7 @@ export function Sidebar() {
           placeholder="搜索书名/作者..."
           value={searchKeyword}
           onChange={(e) => setSearchKeyword(e.target.value)}
-          className="w-full px-3 py-2 text-sm rounded-lg border border-bookshelf-border bg-white focus:outline-none focus:ring-2 focus:ring-bookshelf-accent focus:border-transparent"
+          className="w-full px-3 py-2 text-sm rounded-lg border border-bookshelf-border bg-white dark:bg-bookshelf-card focus:outline-none focus:ring-2 focus:ring-bookshelf-accent focus:border-transparent"
         />
       </div>
 
@@ -84,7 +84,7 @@ export function Sidebar() {
             className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
               filteredTagIds.length === 0 && !filterByRead && !filterByLiked
                 ? "bg-bookshelf-accent text-white"
-                : "hover:bg-gray-300/50 text-bookshelf-text"
+                : "hover:bg-gray-300/50 dark:hover:bg-white/10 text-bookshelf-text"
             }`}
           >
             全部图书
@@ -100,7 +100,7 @@ export function Sidebar() {
             className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors flex items-center gap-2 ${
               filterByRead && !filterByLiked
                 ? "bg-bookshelf-accent text-white"
-                : "hover:bg-gray-300/50 text-bookshelf-text"
+                : "hover:bg-gray-300/50 dark:hover:bg-white/10 text-bookshelf-text"
             }`}
           >
             <span className="w-2.5 h-2.5 rounded-full bg-green-500 flex-shrink-0" />
@@ -116,7 +116,7 @@ export function Sidebar() {
             className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors flex items-center gap-2 ${
               filterByLiked && !filterByRead
                 ? "bg-bookshelf-accent text-white"
-                : "hover:bg-gray-300/50 text-bookshelf-text"
+                : "hover:bg-gray-300/50 dark:hover:bg-white/10 text-bookshelf-text"
             }`}
           >
             <span className="w-2.5 h-2.5 rounded-full bg-red-500 flex-shrink-0" />
@@ -137,7 +137,7 @@ export function Sidebar() {
                 className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors flex items-center justify-between ${
                   filteredTagIds.includes(tag.id)
                     ? "bg-bookshelf-accent text-white"
-                    : "hover:bg-gray-300/50 text-bookshelf-text"
+                    : "hover:bg-gray-300/50 dark:hover:bg-white/10 text-bookshelf-text"
                 }`}
               >
                 <div className="flex items-center gap-2">

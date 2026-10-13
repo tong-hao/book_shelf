@@ -18,6 +18,7 @@ pub fn run() {
             commands::books::get_books,
             commands::books::get_book,
             commands::books::update_book_field,
+            commands::books::update_book_path,
             commands::books::delete_book,
             commands::books::delete_books,
             commands::books::update_book_cover,

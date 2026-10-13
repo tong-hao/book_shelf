@@ -7,7 +7,7 @@ import type { Tag } from "../api/types";
 import { useUiStore } from "../store/uiStore";
 import Tooltip from "./Tooltip";
 import { open as openDialog } from "@tauri-apps/plugin-dialog";
-import { updateBookCover, updateBookCoverFromBase64 } from "../api/books";
+import { updateBookCover, updateBookCoverFromBase64, updateBookPath, openBookFile } from "../api/books";
 
 export function BookDetail() {
   const { selectedBook, selectedBookIds, updateBookField } = useBookStore();
@@ -172,6 +172,49 @@ export function BookDetail() {
     }
   };
 
+  // 修改图书文件路径
+  const handleChangePath = async () => {
+    if (!selectedBook) return;
+    try {
+      const selected = await openDialog({
+        multiple: false,
+        filters: [
+          {
+            name: "电子书",
+            extensions: [
+              "epub",
+              "pdf",
+              "mobi",
+              "azw",
+              "azw3",
+              "txt",
+              "cbz",
+              "cbr",
+              "doc",
+              "docx",
+            ],
+          },
+          { name: "所有文件", extensions: ["*"] },
+        ],
+      });
+      if (!selected || Array.isArray(selected)) return;
+      await updateBookPath(selectedBook.id, selected);
+      useBookStore.getState().loadBooks();
+    } catch (e) {
+      console.error("Failed to change book path:", e);
+    }
+  };
+
+  // 用系统默认应用打开图书文件
+  const handleOpenBook = async () => {
+    if (!selectedBook?.file_path) return;
+    try {
+      await openBookFile(selectedBook.file_path);
+    } catch (e) {
+      console.error("Failed to open book file:", e);
+    }
+  };
+
   if (!selectedBook) {
     return (
       <div className="w-80 min-w-[320px] bg-bookshelf-card border-l border-bookshelf-border p-6 flex items-center justify-center">
@@ -209,7 +252,7 @@ export function BookDetail() {
     <div className="w-80 min-w-[320px] bg-bookshelf-card border-l border-bookshelf-border flex flex-col h-full overflow-y-auto min-h-0">
       {/* 封面（点击更换） */}
       <div
-        className="relative aspect-[3/4] bg-gradient-to-br from-blue-50 to-gray-100 flex items-center justify-center group cursor-pointer overflow-hidden"
+        className="relative aspect-[3/4] bg-gradient-to-br from-blue-50 to-gray-100 dark:from-blue-900/40 dark:to-gray-700 flex items-center justify-center group cursor-pointer overflow-hidden"
         onClick={handleChangeCover}
       >
         {book.cover_path ? (
@@ -250,7 +293,7 @@ export function BookDetail() {
           {editingTitle ? (
             <input
               type="text"
-              className="w-full text-lg font-semibold text-bookshelf-text px-2 py-1 rounded border border-bookshelf-border bg-white focus:outline-none focus:ring-2 focus:ring-bookshelf-accent"
+              className="w-full text-lg font-semibold text-bookshelf-text px-2 py-1 rounded border border-bookshelf-border bg-white dark:bg-bookshelf-sidebar focus:outline-none focus:ring-2 focus:ring-bookshelf-accent"
               value={titleInput}
               onChange={(e) => setTitleInput(e.target.value)}
               onBlur={handleSaveTitle}
@@ -275,7 +318,7 @@ export function BookDetail() {
             {editingAuthor ? (
               <input
                 type="text"
-                className="w-full px-2 py-1 text-sm rounded border border-bookshelf-border bg-white focus:outline-none focus:ring-2 focus:ring-bookshelf-accent"
+                className="w-full px-2 py-1 text-sm rounded border border-bookshelf-border bg-white dark:bg-bookshelf-sidebar focus:outline-none focus:ring-2 focus:ring-bookshelf-accent"
                 value={authorInput}
                 onChange={(e) => setAuthorInput(e.target.value)}
                 onBlur={handleSaveAuthor}
@@ -301,13 +344,46 @@ export function BookDetail() {
 
         <div className="flex gap-2 text-xs text-bookshelf-text-secondary">
           {book.format && (
-            <span className="bg-gray-100 px-2 py-1 rounded">{book.format.toUpperCase()}</span>
+            <span className="bg-gray-100 dark:bg-white/10 px-2 py-1 rounded">{book.format.toUpperCase()}</span>
           )}
           {book.file_size && (
-            <span className="bg-gray-100 px-2 py-1 rounded">
+            <span className="bg-gray-100 dark:bg-white/10 px-2 py-1 rounded">
               {formatFileSize(book.file_size)}
             </span>
           )}
+        </div>
+
+        {/* 文件路径 */}
+        <div>
+          <div className="flex items-center justify-between mb-1">
+            <label className="text-xs font-medium text-bookshelf-text-secondary">
+              文件路径
+            </label>
+            <button
+              onClick={handleChangePath}
+              className="text-xs text-bookshelf-accent hover:text-bookshelf-accent-hover"
+            >
+              修改
+            </button>
+          </div>
+          <div className="flex items-start gap-2">
+            <p className="flex-1 text-xs text-bookshelf-text-secondary break-all bg-gray-50 dark:bg-white/10 px-2 py-1 rounded min-w-0">
+              {book.file_path || "未设置"}
+            </p>
+            {book.file_path && (
+              <Tooltip content="打开文件">
+                <button
+                  onClick={handleOpenBook}
+                  className="px-1.5 py-1 text-sm text-bookshelf-accent hover:text-bookshelf-accent-hover shrink-0"
+                  aria-label="打开文件"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                </button>
+              </Tooltip>
+            )}
+          </div>
         </div>
 
         {/* 评分 */}
@@ -342,7 +418,7 @@ export function BookDetail() {
               updateBookField(book.id, "is_read", book.is_read === 1 ? 0 : 1)
             }
             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-              book.is_read === 1 ? "bg-green-500" : "bg-gray-300"
+              book.is_read === 1 ? "bg-green-500 dark:bg-green-600" : "bg-gray-300 dark:bg-gray-600"
             }`}
           >
             <span
@@ -418,7 +494,7 @@ export function BookDetail() {
                   <button
                     key={tag.id}
                     onClick={() => handleAddTag(tag.id)}
-                    className="block w-full text-left text-xs px-2 py-1 rounded hover:bg-gray-100 text-bookshelf-text"
+                    className="block w-full text-left text-xs px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-white/10 text-bookshelf-text"
                   >
                     + {tag.name}
                   </button>
@@ -443,7 +519,7 @@ export function BookDetail() {
               debouncedUpdateRemark(book.id, val);
             }}
             placeholder="添加备注..."
-            className="w-full px-3 py-2 text-sm rounded-lg border border-bookshelf-border bg-white focus:outline-none focus:ring-2 focus:ring-bookshelf-accent focus:border-transparent resize-none h-20"
+            className="w-full px-3 py-2 text-sm rounded-lg border border-bookshelf-border bg-white dark:bg-bookshelf-sidebar focus:outline-none focus:ring-2 focus:ring-bookshelf-accent focus:border-transparent resize-none h-20"
           />
         </div>
 
@@ -458,7 +534,7 @@ export function BookDetail() {
               value={book.note_link || ""}
               onChange={(e) => updateBookField(book.id, "note_link", e.target.value)}
               placeholder="URL 或本地路径..."
-              className="flex-1 px-3 py-2 text-sm rounded-lg border border-bookshelf-border bg-white focus:outline-none focus:ring-2 focus:ring-bookshelf-accent focus:border-transparent"
+              className="flex-1 px-3 py-2 text-sm rounded-lg border border-bookshelf-border bg-white dark:bg-bookshelf-sidebar focus:outline-none focus:ring-2 focus:ring-bookshelf-accent focus:border-transparent"
             />
             {book.note_link && (
               <Tooltip content="打开链接">

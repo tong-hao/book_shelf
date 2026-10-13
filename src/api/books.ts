@@ -50,3 +50,11 @@ export async function deleteBooks(bookIds: number[]): Promise<number> {
 export async function openBookFile(path: string): Promise<void> {
   return invoke("open_book_file", { path });
 }
+
+/** 修改图书文件路径 */
+export async function updateBookPath(
+  bookId: number,
+  newPath: string
+): Promise<void> {
+  return invoke("update_book_path", { bookId, newPath });
+}

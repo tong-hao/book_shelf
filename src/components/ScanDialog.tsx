@@ -70,13 +70,13 @@ export function ScanDialog() {
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-2xl shadow-xl w-[480px] max-w-full mx-4 overflow-hidden">
+      <div className="bg-white dark:bg-bookshelf-card rounded-2xl shadow-xl w-[480px] max-w-full mx-4 overflow-hidden">
         {/* Header */}
         <div className="px-6 py-4 border-b border-bookshelf-border flex items-center justify-between">
           <h2 className="text-lg font-semibold text-bookshelf-text">扫描目录</h2>
           <button
             onClick={() => setShowScanDialog(false)}
-            className="p-1 rounded hover:bg-gray-100 transition-colors"
+            className="p-1 rounded hover:bg-gray-100 dark:hover:bg-white dark:bg-bookshelf-card/10 transition-colors"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -101,12 +101,12 @@ export function ScanDialog() {
                 value={selectedPath}
                 readOnly
                 placeholder="点击右侧按钮选择..."
-                className="flex-1 px-3 py-2 text-sm rounded-lg border border-bookshelf-border bg-gray-50"
+                className="flex-1 px-3 py-2 text-sm rounded-lg border border-bookshelf-border bg-gray-50 dark:bg-bookshelf-sidebar"
               />
               <button
                 onClick={handleSelectDir}
                 disabled={scanning}
-                className="px-4 py-2 text-sm border border-bookshelf-border rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+                className="px-4 py-2 text-sm border border-bookshelf-border rounded-lg hover:bg-gray-50 dark:hover:bg-white dark:bg-bookshelf-card/10 transition-colors disabled:opacity-50"
               >
                 选择
               </button>
@@ -122,7 +122,7 @@ export function ScanDialog() {
                   {progress.current} / {progress.total}
                 </span>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
+              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                 <div
                   className="bg-bookshelf-accent h-2 rounded-full transition-all duration-300"
                   style={{
@@ -155,7 +155,7 @@ export function ScanDialog() {
         <div className="px-6 py-4 border-t border-bookshelf-border flex justify-end gap-2">
           <button
             onClick={() => setShowScanDialog(false)}
-            className="px-4 py-2 text-sm border border-bookshelf-border rounded-lg hover:bg-gray-50 transition-colors"
+            className="px-4 py-2 text-sm border border-bookshelf-border rounded-lg hover:bg-gray-50 dark:hover:bg-white dark:bg-bookshelf-card/10 transition-colors"
           >
             取消
           </button>

@@ -54,7 +54,7 @@ export function BookCard({ book }: Props) {
       onDoubleClick={handleDoubleClick}
     >
       {/* 封面区域 */}
-      <div className="aspect-[3/4] bg-gradient-to-br from-blue-50 to-gray-100 relative flex items-center justify-center overflow-hidden">
+      <div className="aspect-[3/4] bg-gradient-to-br from-blue-50 to-gray-100 dark:from-blue-900/40 dark:to-gray-700 relative flex items-center justify-center overflow-hidden">
         {book.cover_path ? (
           <img
             key={book.cover_path}
@@ -117,7 +117,7 @@ export function BookCard({ book }: Props) {
         )}
         <div className="flex items-center justify-between mt-1.5">
           {book.format && (
-            <span className="text-xs text-bookshelf-text-secondary bg-gray-100 px-1.5 py-0.5 rounded">
+            <span className="text-xs text-bookshelf-text-secondary bg-gray-100 dark:bg-white/10 px-1.5 py-0.5 rounded">
               {book.format.toUpperCase()}
             </span>
           )}

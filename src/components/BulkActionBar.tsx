@@ -44,7 +44,7 @@ export function BulkActionBar() {
           <div className="flex gap-2">
             <button
               onClick={handleBatchTag}
-              className="px-3 py-1.5 text-sm border border-bookshelf-border rounded-lg hover:bg-gray-50 transition-colors"
+              className="px-3 py-1.5 text-sm border border-bookshelf-border rounded-lg hover:bg-gray-50 dark:hover:bg-white/10 transition-colors"
             >
               批量打标签
             </button>
@@ -55,7 +55,7 @@ export function BulkActionBar() {
                 }
                 loadBooks();
               }}
-              className="px-3 py-1.5 text-sm border border-bookshelf-border rounded-lg hover:bg-gray-50 transition-colors"
+              className="px-3 py-1.5 text-sm border border-bookshelf-border rounded-lg hover:bg-gray-50 dark:hover:bg-white/10 transition-colors"
             >
               标记已读
             </button>
@@ -69,13 +69,13 @@ export function BulkActionBar() {
                   await deleteSelectedBooks();
                 }
               }}
-              className="px-3 py-1.5 text-sm border border-bookshelf-border rounded-lg hover:bg-gray-50 transition-colors"
+              className="px-3 py-1.5 text-sm border border-bookshelf-border rounded-lg hover:bg-gray-50 dark:hover:bg-white/10 transition-colors"
             >
               删除记录
             </button>
             <button
               onClick={selectAllBooks}
-              className="px-3 py-1.5 text-sm border border-bookshelf-border rounded-lg hover:bg-gray-50 transition-colors"
+              className="px-3 py-1.5 text-sm border border-bookshelf-border rounded-lg hover:bg-gray-50 dark:hover:bg-white/10 transition-colors"
             >
               全选
             </button>
@@ -92,7 +92,7 @@ export function BulkActionBar() {
                         console.error("Failed to reveal in Finder:", e);
                       }
                     }}
-                    className="px-3 py-1.5 text-sm border border-bookshelf-border rounded-lg hover:bg-gray-50 transition-colors"
+                    className="px-3 py-1.5 text-sm border border-bookshelf-border rounded-lg hover:bg-gray-50 dark:hover:bg-white/10 transition-colors"
                   >
                     在 Finder 中显示
                   </button>
@@ -104,7 +104,7 @@ export function BulkActionBar() {
                         console.error("Failed to open file:", e);
                       }
                     }}
-                    className="px-3 py-1.5 text-sm border border-bookshelf-border rounded-lg hover:bg-gray-50 transition-colors"
+                    className="px-3 py-1.5 text-sm border border-bookshelf-border rounded-lg hover:bg-gray-50 dark:hover:bg-white/10 transition-colors"
                   >
                     打开
                   </button>
@@ -117,7 +117,7 @@ export function BulkActionBar() {
         <div className="flex items-center gap-2">
           {/* 标签选择器弹出 */}
           {showTagPicker && (
-            <div className="absolute bottom-16 right-4 bg-white rounded-xl shadow-xl border border-bookshelf-border p-3 w-64 max-h-48 overflow-y-auto">
+            <div className="absolute bottom-16 right-4 bg-white dark:bg-bookshelf-card rounded-xl shadow-xl border border-bookshelf-border p-3 w-64 max-h-48 overflow-y-auto">
               <p className="text-xs font-medium text-bookshelf-text-secondary mb-2">
                 选择要添加的标签
               </p>
@@ -129,7 +129,7 @@ export function BulkActionBar() {
                     <button
                       key={tag.id}
                       onClick={() => handleAddTag(tag.id)}
-                      className="w-full text-left px-2 py-1.5 text-sm rounded hover:bg-gray-100 flex items-center gap-2"
+                      className="w-full text-left px-2 py-1.5 text-sm rounded hover:bg-gray-100 dark:hover:bg-white/10 flex items-center gap-2"
                     >
                       {tag.color && (
                         <span
@@ -147,7 +147,7 @@ export function BulkActionBar() {
 
           <button
             onClick={clearSelection}
-            className="px-3 py-1.5 text-sm border border-bookshelf-border rounded-lg hover:bg-gray-50 transition-colors"
+            className="px-3 py-1.5 text-sm border border-bookshelf-border rounded-lg hover:bg-gray-50 dark:hover:bg-white/10 transition-colors"
           >
             取消选择
           </button>
